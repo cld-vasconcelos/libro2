@@ -1,3 +1,38 @@
 # OpenHands Instructions
 
-Follow the custom instructions in the "memory_bank" directory
+## Memory Bank Integration
+
+When processing tasks or requests, follow these steps to utilize the memory_bank:
+
+1. First consult the memory_bank/README.md for high-level context about the application architecture and organization
+
+2. For each task, check relevant directories based on the type of information needed:
+
+   - `memory_bank/facts/`: For understanding system components, architecture, and domain knowledge
+   - `memory_bank/procedures/`: For following established workflows and operational guides
+   - `memory_bank/schemas/`: For adhering to defined patterns and data structures
+   - `memory_bank/rules/`: For ensuring compliance with system constraints and policies
+   - `memory_bank/agents/`: For understanding specialized agent behaviors and principles
+
+3. Prioritize information in this order:
+   1. Specific files directly related to the task
+   2. README.md files in relevant subdirectories
+   3. General application context from memory_bank/README.md
+
+4. Maintain consistency by:
+   - Following patterns documented in schemas/
+   - Adhering to conventions in rules/
+   - Using established workflows from procedures/
+
+5. Before implementing solutions:
+   - Verify alignment with architectural facts
+   - Check for relevant procedures
+   - Ensure compliance with documented rules
+   - Follow defined schemas and patterns
+
+6. Update memory_bank contents when:
+   - Adding new patterns or conventions
+   - Establishing new procedures
+   - Documenting new architectural decisions
+
+Remember: The memory_bank serves as your primary knowledge source for understanding the system and making informed decisions about changes and improvements.
