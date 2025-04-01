@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { Book, BookSource, GoogleBooksResponse } from '@/types/book';
 import { OwnershipStatus, ReadingStatus } from './userBookService';
+import { getBookApiSourceByName } from './bookApiSourceService';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -10,7 +11,21 @@ const getBookCoverUrl = (coverImage: string | null | undefined): string | undefi
   return `${SUPABASE_URL}/storage/v1/object/public/book-covers/${coverImage}`;
 };
 
+// Default Google Books API URL (will be replaced with value from database)
 export const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1';
+
+// Get the API base URL for a given source
+export const getApiBaseUrl = async (source: BookSource): Promise<string> => {
+  if (source === 'libro') return ''; // Local source has no API URL
+
+  try {
+    const apiSource = await getBookApiSourceByName(source);
+    return apiSource?.base_url || GOOGLE_BOOKS_API;
+  } catch (error) {
+    console.error(`Error fetching API base URL for source ${source}:`, error);
+    return GOOGLE_BOOKS_API; // Fallback to default Google Books API
+  }
+};
 
 const mapGoogleBook = (item: GoogleBooksResponse['items'][0]): Book => {
   const { volumeInfo } = item;
@@ -106,7 +121,8 @@ export const searchBooks = async (
     const googleQuery = searchType === 'isbn' 
       ? `isbn:${cleanedQuery}`
       : query;
-    const url = `${GOOGLE_BOOKS_API}/volumes?q=${encodeURIComponent(googleQuery)}&orderBy=relevance&startIndex=${googleStart}&maxResults=${remainingSlots}`;
+    const apiBaseUrl = await getApiBaseUrl('google');
+    const url = `${apiBaseUrl}/volumes?q=${encodeURIComponent(googleQuery)}&orderBy=relevance&startIndex=${googleStart}&maxResults=${remainingSlots}`;
     const response = await fetch(url);
     
     if (!response.ok) throw new Error('Failed to search Google books');
@@ -189,7 +205,8 @@ export const getBookById = async (id: string, source: BookSource = 'google'): Pr
   }
 
   try {
-    const url = `${GOOGLE_BOOKS_API}/volumes/${id}`;
+    const apiBaseUrl = await getApiBaseUrl(source);
+    const url = `${apiBaseUrl}/volumes/${id}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -259,7 +276,8 @@ export const importBook = async (bookData: ImportBookData): Promise<ImportBookRe
   if (bookData.isbn10 || bookData.isbn13) {
     try {
       const searchQuery = bookData.isbn13 ? `isbn:${bookData.isbn13}` : `isbn:${bookData.isbn10}`;
-      const url = `${GOOGLE_BOOKS_API}/volumes?q=${encodeURIComponent(searchQuery)}`;
+      const apiBaseUrl = await getApiBaseUrl('google');
+      const url = `${apiBaseUrl}/volumes?q=${encodeURIComponent(searchQuery)}`;
       const response = await fetch(url);
       
       if (response.ok) {
@@ -435,7 +453,8 @@ export const getAuthorByName = async (name: string): Promise<{ name: string; boo
       }),
 
     // Search Google Books
-    fetch(`${GOOGLE_BOOKS_API}/volumes?q=inauthor:"${encodeURIComponent(name)}"&orderBy=relevance&maxResults=40`)
+    getApiBaseUrl('google').then(apiBaseUrl =>
+      fetch(`${apiBaseUrl}/volumes?q=inauthor:"${encodeURIComponent(name)}"&orderBy=relevance&maxResults=40`))
       .then(response => response.json())
       .then((data: GoogleBooksResponse) => data.items?.map(mapGoogleBook) || [])
   ]);
