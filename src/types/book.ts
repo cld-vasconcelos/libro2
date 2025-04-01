@@ -6,10 +6,21 @@ export interface Author {
   books?: Book[];
 }
 
-export type BookSource = 'google' | 'libro';
+export interface BookApiSource {
+  id: string;
+  name: string;
+  api_key?: string;
+  base_url: string;
+  enabled: boolean;
+  priority: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type BookSourceName = 'google' | 'libro' | 'openlibrary' | string;
 
 export interface Book {
-  source: BookSource;
+  source: BookSourceName;
   id: string;
   title: string;
   authors: string[];

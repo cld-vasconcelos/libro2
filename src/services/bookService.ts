@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { Book, BookSource, GoogleBooksResponse } from '@/types/book';
+import { Book, BookSourceName, GoogleBooksResponse } from '@/types/book';
 import { OwnershipStatus, ReadingStatus } from './userBookService';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;

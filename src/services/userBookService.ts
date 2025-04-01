@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { getBookById, importBook } from './bookService';
-import { BookSource } from '@/types/book';
+import { BookSourceName } from '@/types/book';
 
 export const ownershipStatuses = [
   'Owned',
@@ -23,7 +23,7 @@ export const readingStatuses = [
 export interface UserBook {
   id: string;
   book_id: string;
-  source: BookSource;
+  source: BookSourceName;
   ownership_status: OwnershipStatus;
   reading_status: ReadingStatus;
   created_at: string;
@@ -50,7 +50,7 @@ export type ReadingStatus = 'Not Started' | 'Reading' | 'Paused' | 'Completed' |
 
 interface AddBookToCollectionData {
   bookId: string;
-  source: BookSource;
+  source: BookSourceName;
   ownershipStatus: OwnershipStatus;
   readingStatus: ReadingStatus;
 }
