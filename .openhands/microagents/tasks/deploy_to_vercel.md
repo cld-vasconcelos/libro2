@@ -1,44 +1,50 @@
-# Deploy to Vercel
+---
+name: Deploy to Vercel
+description: Guides through the process of deploying the application to Vercel
+type: task
+triggers: [deploy to vercel, vercel deployment, publish app]
+author: OpenHands
+version: 1.0.0
+---
 
-Guides through the process of deploying the application to Vercel, including environment setup, build configuration, and deployment verification.
+# Vercel Deployment Guide
 
-## Trigger
-"deploy to vercel", "vercel deployment", "publish app"
+Ensures consistent and reliable deployments to Vercel.
 
-## Inputs
-- Environment (required: production/preview/development)
-- Branch name (optional, defaults to main)
-- Build configuration (optional)
-- Environment variables (optional)
+## Usage
 
-## Steps
+```bash
+claude deploy to vercel --env production
+claude deploy to vercel --env preview --branch feature/auth
+claude deploy to vercel --config custom-vercel.json
+```
 
-1. Prepare for Deployment
+## Process
+
+1. Pre-deployment Checks
 
 ### Version Control
 ```bash
-# Ensure clean working directory
+# Ensure clean state
 git status
-
-# Pull latest changes
 git pull origin main
 
-# Switch to deployment branch if needed
+# Switch to deployment branch
 git checkout {branch_name}
 ```
 
 ### Environment Setup
 ```bash
-# Verify environment variables
+# Verify required variables
 cat .env.example
 
-# Check Vercel configuration
+# Check configuration
 cat vercel.json
 ```
 
-2. Configure Build Settings
+2. Build Configuration
 
-### vercel.json Configuration
+### vercel.json
 ```json
 {
   "build": {
@@ -49,52 +55,28 @@ cat vercel.json
     }
   },
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
 ```
 
-### Build Commands
-```json
-{
-  "scripts": {
-    "build": "vite build",
-    "preview": "vite preview"
-  }
-}
-```
+3. Deployment Steps
 
-3. Pre-deployment Checks
-
-### Build Verification
+### Local Verification
 ```bash
-# Local build test
+# Build test
 npm run build
 
-# Preview build
-npm run preview
-```
-
-### Type Checking
-```bash
-# Run TypeScript checks
+# Type check
 npm run typecheck
-```
 
-### Test Suite
-```bash
 # Run tests
 npm run test
 ```
 
-4. Deploy Application
-
-### Using Vercel CLI
+### Deploy Command
 ```bash
-# Login to Vercel
+# Login if needed
 vercel login
 
 # Deploy to preview
@@ -104,34 +86,20 @@ vercel
 vercel --prod
 ```
 
-### Environment Variables
-```bash
-# Set environment variables
-vercel env add VITE_API_URL production
-vercel env add VITE_SUPABASE_URL production
-vercel env add VITE_SUPABASE_ANON_KEY production
-```
-
-5. Post-deployment Verification
+4. Post-deployment Verification
 
 ### Health Checks
 ```bash
-# Check deployment status
-vercel list
+# List deployments
+vercel ls
 
-# View deployment logs
+# Check logs
 vercel logs
 ```
 
-### Integration Tests
-- Test authentication flow
-- Verify API connectivity
-- Check database access
-- Validate file uploads
-
 ## Validation
 
-### Required Configuration
+### Required Files
 ```
 project/
 ├── vercel.json
@@ -140,69 +108,63 @@ project/
 └── package.json
 ```
 
-### Build Requirements
-- No TypeScript errors
-- All tests passing
-- Build successful
-- Preview working
-- Environment configured
+### Environment Variables
+- API endpoints
+- Authentication keys
+- Feature flags
+- Service URLs
+- Analytics IDs
 
-### Deployment Standards
-- Proper environment variables
-- Correct build settings
-- Routes configured
-- SSL enabled
-- Domains set up
+### Build Requirements
+- Clean git state
+- All tests passing
+- Types checking
+- Build succeeding
+- Dependencies updated
 
 ## Examples
 
-### Production Deployment
+### Production Deploy
 ```bash
-# Deploy to production
+# Full production deployment
 claude deploy to vercel --env production
 ```
 
-### Preview Deployment
+### Preview Deploy
 ```bash
-# Deploy feature branch
+# Feature branch preview
 claude deploy to vercel --env preview --branch feature/auth
-```
-
-### Custom Build
-```bash
-# Deploy with custom configuration
-claude deploy to vercel --config custom-vercel.json
 ```
 
 ## Best Practices
 
-### Environment Management
+### Environment Setup
 - Use environment variables
 - Secure sensitive data
-- Document required vars
+- Document requirements
 - Test all environments
 - Handle fallbacks
 
-### Build Configuration
-- Optimize build size
+### Build Process
+- Optimize assets
 - Enable source maps
 - Configure caching
-- Handle assets
-- Set up redirects
+- Handle redirects
+- Validate output
 
 ### Monitoring
 - Set up error tracking
 - Configure logging
 - Monitor performance
 - Track deployments
-- Set up alerts
+- Enable alerts
 
 ### Security
 - Enable HTTPS
 - Configure CSP
 - Set up CORS
 - Handle auth tokens
-- Protect routes
+- Secure routes
 
 ### Performance
 - Enable compression
@@ -211,11 +173,18 @@ claude deploy to vercel --config custom-vercel.json
 - Use CDN
 - Monitor metrics
 
-## Notes
-- Verify environment setup
-- Test before deploying
-- Monitor deployment
-- Check logs for errors
-- Verify all features
-- Document changes
-- Have rollback plan
+## Troubleshooting
+
+### Common Issues
+- Build failures
+- Environment issues
+- Route conflicts
+- SSL problems
+- Cache issues
+
+### Solutions
+- Check logs
+- Verify config
+- Test locally
+- Clear cache
+- Update dependencies

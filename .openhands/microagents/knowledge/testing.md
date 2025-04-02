@@ -1,73 +1,19 @@
-# Testing Knowledge
+---
+name: Testing Practices
+description: Expert knowledge for testing React applications using Vitest and React Testing Library
+type: knowledge
+triggers: [test, testing, vitest, jest, rtl, unit test, integration, e2e]
+author: OpenHands
+version: 1.0.0
+---
 
-## Keywords
-testing, jest, vitest, react-testing-library, unit test, integration test, e2e, mock, stub, spy, assertion, coverage
+# Testing Guide
 
-## Overview
-Expert in testing practices for React applications, including unit testing, integration testing, and test-driven development using Jest, Vitest, and React Testing Library.
+Best practices for testing React applications in the Libro project.
 
-## React Testing Library
+## Test Setup
 
-### Basic Testing
-```typescript
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import MyComponent from './MyComponent';
-
-describe('MyComponent', () => {
-  it('renders correctly', () => {
-    render(<MyComponent />);
-    expect(screen.getByRole('button')).toBeInTheDocument();
-  });
-
-  it('handles user interaction', async () => {
-    const user = userEvent.setup();
-    render(<MyComponent />);
-    
-    await user.click(screen.getByRole('button'));
-    expect(screen.getByText('Clicked!')).toBeInTheDocument();
-  });
-});
-```
-
-### Queries
-```typescript
-// Best practices in order of preference
-const button = screen.getByRole('button');
-const input = screen.getByLabelText('Username');
-const header = screen.getByText('Welcome');
-const image = screen.getByAltText('Profile');
-const element = screen.getByTestId('custom-element');
-
-// Async queries
-const element = await screen.findByText('Loaded');
-const items = await screen.findAllByRole('listitem');
-
-// Query variants
-const optionalElement = screen.queryByText('Not always there');
-const allItems = screen.getAllByRole('listitem');
-```
-
-### User Interactions
-```typescript
-import userEvent from '@testing-library/user-event';
-
-test('form submission', async () => {
-  const user = userEvent.setup();
-  const handleSubmit = vi.fn();
-  
-  render(<Form onSubmit={handleSubmit} />);
-  
-  await user.type(screen.getByLabelText('Email'), 'test@example.com');
-  await user.click(screen.getByRole('button', { name: /submit/i }));
-  
-  expect(handleSubmit).toHaveBeenCalled();
-});
-```
-
-## Jest/Vitest Configuration
-
-### Setup
+### Configuration
 ```typescript
 // vitest.config.ts
 import { defineConfig } from 'vitest/config';
@@ -79,195 +25,188 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     coverage: {
       provider: 'c8',
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'src/test/']
+      reporter: ['text', 'html'],
+      exclude: ['node_modules/']
     }
   }
 });
 ```
 
-### Custom Matchers
+## Component Testing
+
+### Basic Component Test
 ```typescript
-expect.extend({
-  toBeWithinRange(received, floor, ceiling) {
-    const pass = received >= floor && received <= ceiling;
-    return {
-      pass,
-      message: () => `expected ${received} to be within range ${floor}-${ceiling}`
-    };
-  }
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { BookCard } from './BookCard';
+
+describe('BookCard', () => {
+  const defaultProps = {
+    title: 'Test Book',
+    author: 'Test Author',
+    onSelect: vi.fn()
+  };
+
+  it('renders book information', () => {
+    render(<BookCard {...defaultProps} />);
+    
+    expect(screen.getByText(defaultProps.title)).toBeInTheDocument();
+    expect(screen.getByText(defaultProps.author)).toBeInTheDocument();
+  });
+
+  it('handles selection', async () => {
+    const user = userEvent.setup();
+    render(<BookCard {...defaultProps} />);
+    
+    await user.click(screen.getByRole('button'));
+    expect(defaultProps.onSelect).toHaveBeenCalled();
+  });
 });
 ```
 
-## Mocking
+## Query Patterns
+
+### Selection Methods
+```typescript
+// By Role (Preferred)
+const button = screen.getByRole('button', { name: /submit/i });
+const input = screen.getByRole('textbox', { name: /email/i });
+
+// By Label
+const emailInput = screen.getByLabelText('Email address');
+
+// By Text
+const heading = screen.getByText(/welcome/i);
+
+// By Test ID (Last Resort)
+const element = screen.getByTestId('submit-button');
+```
+
+## Async Testing
+
+### Data Fetching
+```typescript
+test('loads and displays books', async () => {
+  // Mock API
+  server.use(
+    rest.get('/api/books', (req, res, ctx) => {
+      return res(ctx.json([
+        { id: 1, title: 'Book 1' }
+      ]));
+    })
+  );
+
+  render(<BookList />);
+  
+  // Wait for loading
+  expect(await screen.findByText('Book 1')).toBeInTheDocument();
+});
+```
+
+## Mock Patterns
 
 ### Function Mocks
 ```typescript
 // Mock function
-const mockFn = vi.fn();
-mockFn.mockReturnValue('default');
-mockFn.mockResolvedValue({ data: 'async' });
+const handleSubmit = vi.fn();
 
-// Spy on method
-const spy = vi.spyOn(object, 'method');
-
-// Mock implementation
-const mock = vi.fn().mockImplementation(() => 'result');
-```
-
-### Module Mocks
-```typescript
 // Mock module
-vi.mock('./service', () => ({
-  fetchData: vi.fn().mockResolvedValue({ data: 'mocked' })
+vi.mock('./api', () => ({
+  fetchBooks: vi.fn().mockResolvedValue([
+    { id: 1, title: 'Book 1' }
+  ])
 }));
 
-// Mock specific module parts
-vi.mock('axios', () => ({
-  default: {
-    get: vi.fn().mockResolvedValue({ data: {} })
-  }
+// Mock hook
+vi.mock('../../hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: { id: 1 },
+    isAuthenticated: true
+  })
 }));
 ```
 
-### Timer Mocks
+## Context Testing
+
+### Provider Wrapper
 ```typescript
-// Fast-forward time
-vi.useFakeTimers();
-vi.advanceTimersByTime(1000);
-vi.runAllTimers();
-vi.useRealTimers();
-```
-
-## Integration Testing
-
-### Router Testing
-```typescript
-import { BrowserRouter } from 'react-router-dom';
-
-const renderWithRouter = (ui: React.ReactElement) => {
+const customRender = (ui: React.ReactElement, providerProps = {}) => {
   return render(
-    <BrowserRouter>
-      {ui}
-    </BrowserRouter>
-  );
-};
-
-test('navigation', () => {
-  renderWithRouter(<App />);
-  // Test navigation logic
-});
-```
-
-### Context Testing
-```typescript
-const renderWithContext = (ui: React.ReactElement, contextValue = {}) => {
-  return render(
-    <AppContext.Provider value={contextValue}>
+    <AppContext.Provider value={providerProps}>
       {ui}
     </AppContext.Provider>
   );
 };
-```
 
-## Testing Patterns
-
-### Component Testing
-```typescript
-describe('Component', () => {
-  // Setup/teardown
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  // Rendering
-  test('renders initially', () => {
-    render(<Component />);
-    // Assertions
-  });
-
-  // User interaction
-  test('handles events', async () => {
-    const user = userEvent.setup();
-    // Test interactions
-  });
-
-  // Async behavior
-  test('loads data', async () => {
-    // Test loading states
-  });
-});
-```
-
-### Hook Testing
-```typescript
-import { renderHook, act } from '@testing-library/react';
-
-test('useCustomHook', () => {
-  const { result } = renderHook(() => useCustomHook());
-
-  act(() => {
-    result.current.update();
-  });
-
-  expect(result.current.value).toBe('updated');
-});
-```
-
-## Test Organization
-
-### File Structure
-```
-src/
-  components/
-    Button/
-      Button.tsx
-      Button.test.tsx
-  hooks/
-    useAuth/
-      useAuth.ts
-      useAuth.test.ts
-  test/
-    setup.ts
-    utils/
-      test-utils.tsx
-```
-
-### Test Suites
-```typescript
-describe('Feature', () => {
-  describe('Component', () => {
-    describe('method', () => {
-      it('should handle case 1', () => {});
-      it('should handle case 2', () => {});
-    });
-  });
+test('uses context value', () => {
+  customRender(<Component />, { user: { id: 1 } });
+  // Assert context usage
 });
 ```
 
 ## Best Practices
 
-### Writing Tests
-- Test behavior, not implementation
-- Use semantic queries
-- Avoid testing implementation details
-- Write readable test descriptions
-- Follow the Arrange-Act-Assert pattern
+### Test Structure
+- Arrange: Set up test data
+- Act: Execute test actions
+- Assert: Verify expectations
+- Cleanup: Reset if needed
 
-### Test Coverage
-- Maintain high coverage for critical paths
-- Balance coverage with maintenance cost
-- Focus on user-facing functionality
-- Test edge cases and error states
+### Component Tests
+- Test behavior, not implementation
+- Focus on user interactions
+- Verify accessible elements
+- Test error states
+- Validate props usage
+
+### Test Organization
+- Group related tests
+- Use clear descriptions
+- Keep tests focused
+- Share setup code
+- Clean up after tests
+
+### Code Coverage
+- Components: 90%+
+- Hooks: 90%+
+- Utils: 85%+
+- Services: 85%+
+- Routes: 80%+
+
+### Common Patterns
+- User interactions
+- Data loading
+- Error handling
+- Form submission
+- Route changes
+
+## Integration Testing
+
+### Router Testing
+```typescript
+import { MemoryRouter } from 'react-router-dom';
+
+const renderWithRouter = (ui: React.ReactElement, route = '/') => {
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      {ui}
+    </MemoryRouter>
+  );
+};
+```
+
+## Testing Tips
+
+### Debugging
+- screen.debug()
+- test.only()
+- Verbose errors
+- Console logs
+- Browser devtools
 
 ### Performance
 - Mock heavy operations
-- Use setup/teardown efficiently
+- Use setup/teardown
 - Batch related tests
-- Clean up after tests
-
-### Debugging
-- Use screen.debug()
-- Leverage test.only and test.skip
-- Use descriptive error messages
-- Maintain isolated test environments
+- Clear mocks
+- Reset handlers

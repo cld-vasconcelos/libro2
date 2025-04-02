@@ -1,279 +1,196 @@
-# Supabase Development Knowledge
+---
+name: Supabase Development
+description: Expert knowledge for Supabase platform usage and best practices
+type: knowledge
+triggers: [supabase, postgresql, auth, storage, realtime, rpc, postgrest, database]
+author: OpenHands
+version: 1.0.0
+---
 
-## Keywords
-supabase, postgresql, auth, storage, realtime, rpc, postgrest, database, migrations, policies
+# Supabase Guide
 
-## Overview
-Expert in Supabase platform development, including authentication, database management, storage, and real-time subscriptions.
+Essential patterns and practices for using Supabase in the Libro project.
 
-## Authentication
+## Client Setup
 
-### Setup and Configuration
+### Initialization
 ```typescript
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  'https://your-project.supabase.co',
-  'your-anon-key'
+  process.env.VITE_SUPABASE_URL!,
+  process.env.VITE_SUPABASE_ANON_KEY!
 );
 ```
+
+## Authentication
 
 ### User Management
 ```typescript
 // Sign up
 const { data, error } = await supabase.auth.signUp({
-  email: 'user@example.com',
-  password: 'password'
+  email,
+  password,
+  options: { 
+    data: { full_name: name }
+  }
 });
 
 // Sign in
 const { data, error } = await supabase.auth.signInWithPassword({
-  email: 'user@example.com',
-  password: 'password'
+  email,
+  password
 });
 
-// Sign out
-const { error } = await supabase.auth.signOut();
-
 // Get session
-const { data: { session }, error } = await supabase.auth.getSession();
+const { data: { session } } = await supabase.auth.getSession();
 ```
 
 ## Database Operations
 
 ### Queries
 ```typescript
-// Select
+// Select with filters
 const { data, error } = await supabase
-  .from('table_name')
-  .select('column1, column2, relation(*)')
-  .eq('column', 'value')
+  .from('books')
+  .select('id, title, author(*)')
+  .eq('status', 'published')
   .order('created_at', { ascending: false });
 
-// Insert
+// Insert with return
 const { data, error } = await supabase
-  .from('table_name')
-  .insert([{ column1: 'value1', column2: 'value2' }])
-  .select();
+  .from('books')
+  .insert({ title, author_id })
+  .select()
+  .single();
 
-// Update
-const { data, error } = await supabase
-  .from('table_name')
-  .update({ column1: 'new_value' })
-  .eq('id', 123)
-  .select();
-
-// Delete
+// Update with constraints
 const { error } = await supabase
-  .from('table_name')
-  .delete()
-  .eq('id', 123);
+  .from('books')
+  .update({ status: 'archived' })
+  .eq('id', bookId)
+  .eq('user_id', userId);
 ```
 
-### Row Level Security (RLS)
+## Row Level Security
+
+### Policy Examples
 ```sql
 -- Enable RLS
-alter table table_name enable row level security;
+alter table books enable row level security;
 
--- Create policy
-create policy "Users can read public posts"
-  on posts
-  for select
-  using (is_public = true);
+-- Read policy
+create policy "Public books are viewable"
+  on books for select
+  using (status = 'published');
 
--- Auth check policy
-create policy "Users can update own posts"
-  on posts
-  for update
-  using (auth.uid() = user_id);
+-- Write policy
+create policy "Users can update own books"
+  on books for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 ```
 
 ## Storage
 
 ### File Operations
 ```typescript
-// Upload
+// Upload file
 const { data, error } = await supabase.storage
-  .from('bucket_name')
-  .upload('file_path', file);
+  .from('book-covers')
+  .upload(`${userId}/${filename}`, file);
 
-// Download
-const { data, error } = await supabase.storage
-  .from('bucket_name')
-  .download('file_path');
+// Get public URL
+const { data: { publicUrl } } = supabase.storage
+  .from('book-covers')
+  .getPublicUrl(filePath);
 
-// Delete
+// Delete file
 const { error } = await supabase.storage
-  .from('bucket_name')
-  .remove(['file_path']);
+  .from('book-covers')
+  .remove([filePath]);
 ```
 
-### Storage Policies
-```sql
--- Public bucket policy
-create policy "Public Access"
-  on storage.objects
-  for select
-  using (bucket_id = 'public');
-
--- User-specific policy
-create policy "User Access"
-  on storage.objects
-  for all
-  using (auth.uid() = owner_id);
-```
-
-## Real-time Subscriptions
+## Realtime Subscriptions
 
 ### Channel Setup
 ```typescript
-// Subscribe to table changes
 const subscription = supabase
-  .channel('table_changes')
+  .channel('db-changes')
   .on(
     'postgres_changes',
-    {
-      event: '*',
-      schema: 'public',
-      table: 'table_name'
+    { 
+      event: '*', 
+      schema: 'public', 
+      table: 'books' 
     },
     (payload) => {
-      console.log('Change received!', payload);
+      console.log('Change received:', payload);
     }
   )
   .subscribe();
 ```
 
-### Presence
+## Error Handling
+
+### Type-Safe Operations
 ```typescript
-// Track online users
-const channel = supabase.channel('online-users')
-  .on('presence', { event: 'sync' }, () => {
-    const state = channel.presenceState();
-    console.log('Online:', state);
-  });
-```
+interface DatabaseError {
+  code: string;
+  message: string;
+  details: string;
+}
 
-## Database Migrations
-
-### Structure
-```sql
--- 20250101000000_create_users.sql
-begin;
-
-create table users (
-  id uuid default uuid_generate_v4() primary key,
-  created_at timestamptz default now(),
-  email text unique not null,
-  name text
-);
-
--- Add policies
-alter table users enable row level security;
-
-create policy "Users can read own profile"
-  on users for select
-  using (auth.uid() = id);
-
-commit;
-```
-
-### Migration Management
-```bash
-# Create migration
-supabase migration new create_users
-
-# Apply migrations
-supabase db reset
-
-# Generate types
-supabase gen types typescript > types.ts
-```
-
-## Edge Functions
-
-### Deployment
-```typescript
-// Function code
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-
-serve(async (req) => {
-  const { name } = await req.json();
-  return new Response(
-    JSON.stringify({ message: `Hello ${name}!` }),
-    { headers: { 'Content-Type': 'application/json' } }
-  );
-});
-
-// Deploy
-supabase functions deploy function-name
+async function handleDatabaseOperation<T>(
+  operation: () => Promise<{ data: T | null; error: DatabaseError | null; }>
+): Promise<T> {
+  const { data, error } = await operation();
+  
+  if (error) {
+    throw new Error(`Database error: ${error.message}`);
+  }
+  
+  if (!data) {
+    throw new Error('No data returned');
+  }
+  
+  return data;
+}
 ```
 
 ## Best Practices
 
-### Error Handling
-```typescript
-const handleDatabaseOperation = async () => {
-  const { data, error } = await supabase
-    .from('table')
-    .select('*');
-
-  if (error) {
-    console.error('Error:', error.message);
-    throw error;
-  }
-
-  return data;
-};
-```
-
-### Type Safety
-```typescript
-// Define database types
-type DbResult<T> = T extends PromiseLike<infer U> ? U : never;
-type DbResultOk<T> = T extends PromiseLike<{ data: infer U }> ? U : never;
-
-// Use with queries
-type Profile = DbResultOk<ReturnType<typeof getProfile>>;
-```
-
-### Performance
-- Use appropriate indexes
-- Optimize queries
-- Implement caching strategies
-- Use connection pooling
-- Monitor query performance
-
 ### Security
-- Always use RLS policies
-- Implement proper auth flows
-- Sanitize user inputs
+- Enable RLS for all tables
+- Use service roles sparingly
+- Validate all inputs
 - Use prepared statements
 - Regular security audits
 
-## Testing
+### Performance
+- Index frequently queried columns
+- Use appropriate joins
+- Implement caching strategy
+- Monitor query performance
+- Batch operations
 
-### Database Tests
-```typescript
-import { createClient } from '@supabase/supabase-js';
+### Database Design
+- Use UUIDs for primary keys
+- Add timestamps to all tables
+- Implement soft deletes
+- Use foreign key constraints
+- Document schema changes
 
-describe('Database Operations', () => {
-  const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_KEY!
-  );
+### Error Management
+- Handle network errors
+- Implement retry logic
+- Log database errors
+- Validate responses
+- Use type checking
 
-  beforeEach(async () => {
-    // Setup test data
-  });
-
-  it('should create a record', async () => {
-    const { data, error } = await supabase
-      .from('test_table')
-      .insert({ /* test data */ })
-      .select();
-    
-    expect(error).toBeNull();
-    expect(data).toBeDefined();
-  });
-});
+### Development Flow
+- Use migrations for changes
+- Test in local environment
+- Follow naming conventions
+- Document API endpoints
+- Monitor performance

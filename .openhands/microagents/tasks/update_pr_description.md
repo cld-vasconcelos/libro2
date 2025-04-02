@@ -1,156 +1,123 @@
-# Update Pull Request Description
+---
+name: Update PR Description
+description: Generates comprehensive pull request descriptions from code changes
+type: task
+triggers: [update pr description, generate pr description, improve pr description]
+author: OpenHands
+version: 1.0.0
+---
 
-Generates comprehensive PR descriptions based on code changes, ensuring consistent and informative pull requests.
+# PR Description Generator
 
-## Trigger
-"update pr description", "generate pr description", "improve pr description"
+Generates detailed, standardized pull request descriptions based on code changes.
 
-## Inputs
-- PR branch name (optional)
-- Base branch name (optional, defaults to 'main')
-- Custom sections to include (optional)
+## Usage
 
-## Steps
-
-1. Gather PR Information
 ```bash
-# Get current branch name if not provided
-git rev-parse --abbrev-ref HEAD
-
-# Get commits since branching from base
-git log origin/main..HEAD --oneline
+claude update pr description
+claude update pr description --branch feature/auth-flow
+claude update pr description --sections "summary,changes,testing"
 ```
 
-2. Analyze Changes
-```bash
-# Get detailed changes
-git diff origin/main..HEAD --stat
+## Process
 
-# Get changed files by type
-git diff origin/main..HEAD --name-only
+1. Analyze Branch Changes
+```bash
+git rev-parse --abbrev-ref HEAD  # Get current branch
+git log origin/main..HEAD --oneline  # Get commits
+git diff origin/main..HEAD --stat  # Get changes
 ```
 
-3. Generate Description Sections
+2. Generate Description Sections
 
 ### Title
-- Extract from branch name or commit messages
-- Format: `type(scope): description`
-- Example: `feat(auth): implement OAuth login flow`
+Format: `type(scope): description`
+Example: `feat(auth): implement OAuth login flow`
 
 ### Summary
 ```markdown
 ## Summary
-[Brief description of changes and their purpose]
+[Brief description of changes]
 
 ## Impact
-- 🎯 **Scope**: [frontend/backend/full-stack]
-- 🔄 **Type**: [feature/bugfix/refactor/etc]
-- 📊 **Risk Level**: [low/medium/high]
+🎯 **Scope**: frontend
+🔄 **Type**: feature
+📊 **Risk**: medium
 ```
 
 ### Changes
 ```markdown
 ## Changes
-### Added
-- New features or files added
-### Modified
-- Changes to existing functionality
-### Removed
-- Removed features or files
 
-## Implementation Details
-[Technical details about the implementation]
+### Added
+- New features/files added
+
+### Modified
+- Changes to existing code
+
+### Removed
+- Removed features/files
 ```
 
 ### Testing
 ```markdown
 ## Testing
+
 ### Added Tests
-- List of new tests
+- List new tests
+
 ### Modified Tests
 - Changes to existing tests
+
 ### Coverage Impact
-- Coverage changes if any
+- Coverage changes
 ```
 
-### Dependencies
-```markdown
-## Dependencies
-- New dependencies added
-- Updated dependencies
-- Removed dependencies
+3. Update PR
+
+Use GitHub CLI:
+```bash
+gh pr edit [number] --body "$(cat description.md)"
 ```
-
-4. Format Final Description
-```markdown
-# [PR Title]
-
-## Summary
-[Generated summary]
-
-## Changes
-[Generated changes]
-
-## Testing
-[Generated testing section]
-
-## Dependencies
-[Generated dependencies section]
-
-## Checklist
-- [ ] Tests added/updated
-- [ ] Documentation updated
-- [ ] Migration scripts added (if needed)
-- [ ] Breaking changes documented
-```
-
-5. Update PR Description
-- Use GitHub API or GitHub CLI to update PR description
-- Handle errors and provide feedback
 
 ## Validation
 
-### Required Files
-- Ensure .git directory exists
-- Check GitHub CLI or API access
+### Required
+- Git repository
+- GitHub CLI access
+- Branch with changes
+- Commit history
 
-### Success Criteria
-- Generated description includes all required sections
-- Code changes accurately reflected
-- Testing information complete
-- Dependencies documented
-
-### Error Handling
-- Handle missing git repository
-- Handle API/CLI access errors
-- Handle invalid branch names
+### Optional
+- Custom sections
+- Base branch override
+- Description template
 
 ## Examples
 
-### Basic Usage
+### Basic Update
 ```bash
-# Generate description for current branch
+# Current branch
 claude update pr description
 
-# Generate for specific branch
-claude update pr description --branch feature/auth-flow
+# Specific branch
+claude update pr description --branch feature/auth
 ```
 
 ### Custom Sections
 ```bash
-# Include specific sections
-claude update pr description --sections "summary,changes,testing"
+# Selected sections
+claude update pr description --sections "summary,testing"
+
+# Custom template
+claude update pr description --template template.md
 ```
 
-### With Base Branch
-```bash
-# Compare with different base branch
-claude update pr description --base develop
-```
+## Best Practices
 
-## Notes
-- Requires git repository
-- GitHub CLI or API access needed
-- Custom sections can be added
-- Auto-detects common patterns
-- Supports multiple PR description templates
+- Include relevant changes
+- Keep sections focused
+- List affected areas
+- Document testing
+- Note dependencies
+- Highlight risks

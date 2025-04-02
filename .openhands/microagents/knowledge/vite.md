@@ -1,10 +1,15 @@
-# Vite Development Knowledge
+---
+name: Vite Development
+description: Expert knowledge for Vite build tool configuration and optimization
+type: knowledge
+triggers: [vite, build, dev, hmr, rollup, esbuild, bundler]
+author: OpenHands
+version: 1.0.0
+---
 
-## Keywords
-vite, build, dev, hmr, rollup, esbuild, bundler, optimization, plugin
+# Vite Guide
 
-## Overview
-Expert in Vite build tool configuration, optimization, and development workflow for modern web applications.
+Essential configuration and optimization patterns for Vite in the Libro project.
 
 ## Basic Configuration
 
@@ -24,177 +29,59 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true
   }
 });
 ```
 
 ## Development Server
 
-### Features
-- Hot Module Replacement (HMR)
-- Fast startup and updates
-- ESM-based dev server
-- Optimized dependencies
-
-### Configuration
+### Hot Module Replacement
 ```typescript
+// Enable HMR in components
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    // Handle updates
+  });
+}
+
+// Configure server
 export default defineConfig({
   server: {
-    // Host configuration
-    host: true,
-    port: 3000,
-    
-    // CORS and proxy settings
-    cors: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true
-      }
+    hmr: {
+      overlay: true,
+      timeout: 2000
     },
-    
-    // Force HTTPS
-    https: true,
-    
-    // Custom middlewares
-    middlewares: [
-      // Add custom middleware here
-    ]
+    watch: {
+      usePolling: true
+    }
   }
 });
 ```
 
-## Build Configuration
+## Build Optimization
 
-### Production Build
+### Production Setup
 ```typescript
 export default defineConfig({
   build: {
-    // Output directory
+    target: 'es2015',
     outDir: 'dist',
-    
-    // Generate sourcemaps
+    assetsDir: 'assets',
     sourcemap: true,
     
-    // Minification options
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true
-      }
-    },
-    
-    // Chunk splitting
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          // Add more manual chunks
+          ui: ['@/components/ui']
         }
       }
-    }
-  }
-});
-```
-
-### Asset Handling
-```typescript
-export default defineConfig({
-  build: {
-    assetsDir: 'assets',
-    assetsInlineLimit: 4096,
-    cssCodeSplit: true,
-    rollupOptions: {
-      output: {
-        assetFileNames: 'assets/[name]-[hash][extname]'
-      }
-    }
-  }
-});
-```
-
-## Plugin System
-
-### Custom Plugin
-```typescript
-import type { Plugin } from 'vite';
-
-export default function myPlugin(): Plugin {
-  return {
-    name: 'my-plugin',
-    
-    // Hook examples
-    configResolved(config) {
-      // Store final resolved config
     },
-    
-    transform(code, id) {
-      // Transform code
-      return {
-        code: transformedCode,
-        map: sourceMap
-      };
-    },
-    
-    // More hooks available
-  };
-}
-```
 
-### Common Plugins
-```typescript
-import vue from '@vitejs/plugin-vue';
-import react from '@vitejs/plugin-react';
-import legacy from '@vitejs/plugin-legacy';
-
-export default defineConfig({
-  plugins: [
-    react(),
-    legacy({
-      targets: ['defaults', 'not IE 11']
-    }),
-    // Add more plugins
-  ]
-});
-```
-
-## Performance Optimization
-
-### Code Splitting
-```typescript
-// Dynamic imports for route-based code splitting
-const MyComponent = () => import('./MyComponent');
-
-// Configure chunk splitting
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        }
-      }
-    }
-  }
-});
-```
-
-### Caching
-```typescript
-export default defineConfig({
-  build: {
-    // Cache busting
-    rollupOptions: {
-      output: {
-        entryFileNames: '[name].[hash].js',
-        chunkFileNames: '[name].[hash].js',
-        assetFileNames: '[name].[hash].[ext]'
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true
       }
     }
   }
@@ -219,6 +106,32 @@ export default defineConfig({
 console.log(import.meta.env.VITE_API_URL);
 ```
 
+## Plugin Integration
+
+### Custom Plugin
+```typescript
+// plugins/custom-plugin.ts
+import type { Plugin } from 'vite';
+
+export default function myPlugin(): Plugin {
+  return {
+    name: 'my-plugin',
+    
+    configResolved(config) {
+      // Plugin setup
+    },
+    
+    transform(code, id) {
+      // Transform code
+      return {
+        code: transformedCode,
+        map: sourceMap
+      };
+    }
+  };
+}
+```
+
 ## Testing Setup
 
 ### Vitest Configuration
@@ -238,59 +151,55 @@ export default defineConfig({
 });
 ```
 
-## Troubleshooting
-
-### Common Issues
-- HMR not working
-- Build optimization problems
-- Asset loading issues
-- Plugin conflicts
-
-### Debug Mode
-```bash
-# Enable debug logging
-DEBUG=vite:* vite build
-
-# Specific debug scopes
-DEBUG=vite:transform vite dev
-```
-
 ## Best Practices
 
+### Performance
+- Enable code splitting
+- Configure chunk strategy
+- Optimize dependencies
+- Use build caching
+- Monitor bundle size
+
 ### Development
-- Use alias for imports
+- Use aliases for imports
 - Enable source maps
-- Configure proxy for API requests
+- Configure proxies
+- Handle assets properly
 - Use environment variables
 
 ### Production
-- Enable minification
-- Configure chunk splitting
-- Optimize assets
+- Minify output
 - Generate source maps
-- Enable legacy support if needed
-
-### Performance
-- Use dynamic imports
 - Configure caching
-- Optimize dependencies
-- Monitor bundle size
+- Enable compression
+- Validate builds
 
-## Deployment
+### Asset Handling
+- Optimize images
+- Bundle CSS efficiently
+- Handle fonts properly
+- Configure public path
+- Set size limits
 
-### Static Hosting
-```typescript
-export default defineConfig({
-  base: '/my-app/', // For subdirectory deployment
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true
-  }
-});
-```
+### Debugging
+- Use development tools
+- Check build output
+- Monitor HMR updates
+- Validate config
+- Test production builds
 
-### Preview
-```bash
-# Build and preview
-vite build
-vite preview
+## Common Issues
+
+### Troubleshooting
+- HMR not working
+- Build failures
+- Import errors
+- Plugin conflicts
+- Performance issues
+
+### Solutions
+- Clear cache
+- Check dependencies
+- Validate config
+- Update plugins
+- Monitor resources

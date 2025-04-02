@@ -1,25 +1,26 @@
-# Repository: Libro 2
+---
+name: Repository Configuration
+description: Core configuration and guidelines for the Libro 2 project
+type: repo
+author: OpenHands
+version: 1.0.0
+---
 
-## Overview
-Libro 2 is a web application for managing and cataloging books, built with React, TypeScript, and Supabase. This document serves as the central repository guidelines document that is automatically loaded by OpenHands when working with this repository.
+# Libro 2 Repository Guidelines
 
-## Architecture
+A modern web application for managing and cataloging books, built with React, TypeScript, and Supabase.
 
-### Frontend
-- React + TypeScript application
-- Vite as build tool
-- ShadCN UI components
-- Client-side routing with custom implementation
-- Responsive design for mobile and desktop views
+## Development Stack
 
-### Backend
-- Supabase for backend services
-  - Authentication
-  - Database
-  - Storage
-- PostgreSQL database with migrations
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **UI Framework**: ShadCN
+- **Backend**: Supabase
+- **Database**: PostgreSQL
+- **Testing**: Vitest + React Testing Library
 
 ## Project Structure
+
 ```
 src/
 ├── components/     # Reusable UI components
@@ -31,91 +32,52 @@ src/
 └── types/        # TypeScript type definitions
 ```
 
-## Coding Standards
+## Core Standards
 
-### TypeScript
-- Strict type checking enabled
-- Interfaces preferred over type aliases when possible
-- Generic types should be descriptive and meaningful
+### Code Quality
+- TypeScript strict mode enabled
+- Props interfaces required for all components
+- Jest/Vitest for testing (90% coverage target)
+- ESLint + Prettier for code formatting
 
-### React
-- Functional components with hooks
-- Props interfaces must be defined for all components
-- Custom hooks for shared logic
-- Context API for global state management
+### File Organization
+- Components: `PascalCase.tsx`
+- Hooks: `camelCase.ts` with 'use' prefix
+- Tests: `ComponentName.test.tsx`
+- Services: `camelCase.ts` with 'Service' suffix
 
-### Testing
-- Jest + React Testing Library
-- Tests located next to implementation files
-- Coverage requirements:
-  - Components: 90%
-  - Services: 85%
-  - Utils: 80%
+### Database Practices
+- Migrations for all schema changes
+- Snake_case for database naming
+- Timestamp tracking (created_at/updated_at)
+- Explicit foreign key constraints
 
-### File Naming
-- React components: PascalCase (.tsx)
-- Hooks: camelCase with 'use' prefix
-- Services: camelCase with 'Service' suffix
-- Test files: ComponentName.test.tsx
+### Git Workflow
+- Main branch: production-ready code
+- Development branch: integration
+- Feature branches: `feature/*`
+- Fix branches: `fix/*`
+- PR reviews required
 
-## Database Guidelines
+## Security Requirements
 
-### Migrations
-- All schema changes must be made through migrations
-- Migrations must be reversible
-- Follow the naming convention: YYYYMMDDHHMMSS_descriptive_name.sql
-
-### Tables
-- Use snake_case for table and column names
-- Include created_at and updated_at timestamps
-- Foreign key constraints must be explicitly named
-
-## Git Workflow
-
-### Branches
-- main: production-ready code
-- development: integration branch
-- feature/*: new features
-- fix/*: bug fixes
-
-### Commits
-- Conventional Commits format
-- Present tense, imperative mood
-- Reference issue numbers when applicable
-
-### Pull Requests
-- Required reviews: 1
-- Must pass CI checks
-- Must be up to date with base branch
-
-## Environment Setup
-- Node.js 18+ required
-- Supabase CLI for local development
-- Environment variables specified in .env.example
-
-## Security Guidelines
-- No sensitive data in logs
-- API keys and secrets managed through environment variables
+- Row Level Security (RLS) enabled
+- Environment variables for secrets
+- Input validation required
 - Regular dependency updates
-- Input validation on all user inputs
+- HTTPS enforced
 
-## Performance Standards
-- First Contentful Paint < 1.5s
-- Time to Interactive < 3.5s
-- Bundle size < 250KB (gzipped)
-- API response time < 300ms
+## Performance Targets
 
-## Accessibility
-- WCAG 2.1 AA compliance required
+- First Contentful Paint: < 1.5s
+- Time to Interactive: < 3.5s
+- Bundle Size: < 250KB (gzipped)
+- API Response: < 300ms
+
+## Accessibility Standards
+
+- WCAG 2.1 AA compliance
 - Semantic HTML elements
-- Proper ARIA attributes
+- ARIA attributes where needed
 - Keyboard navigation support
-- Color contrast ratios meet standards
-
-## Memory Bank Organization
-- facts/: Architectural decisions and service documentation
-- procedures/: Step-by-step guides for common tasks
-- rules/: Project conventions and integration guidelines
-- schemas/: Database and API schemas
-
-This document serves as the primary repository configuration for OpenHands AI assistance. All repository-specific instructions are consolidated here for consistent AI interactions across the project.
+- Color contrast requirements met

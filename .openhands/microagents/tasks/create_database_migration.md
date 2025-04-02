@@ -1,23 +1,31 @@
-# Create Supabase Database Migration
+---
+name: Create Database Migration
+description: Creates and applies Supabase database migrations with proper structure and rollbacks
+type: task
+triggers: [create migration, add migration, new database migration]
+author: OpenHands
+version: 1.0.0
+---
 
-Creates and applies a new database migration for Supabase, following project standards and best practices.
+# Database Migration Generator
 
-## Trigger
-"create migration", "add migration", "new database migration"
+Creates standardized Supabase database migrations with rollback support.
 
-## Inputs
-- Migration name (required)
-- Migration type (optional: create/alter/drop)
-- Tables affected (optional)
-- Description (optional)
+## Usage
 
-## Steps
+```bash
+claude create migration add_users_table
+claude create migration add_user_preferences --type alter
+claude create migration add_search_function --type function
+```
+
+## Process
 
 1. Generate Migration File
 ```bash
-# Create timestamped migration file
+# Create timestamped file
 timestamp=$(date -u +"%Y%m%d%H%M%S")
-filename="${timestamp}_${migration_name}.sql"
+filename="supabase/migrations/${timestamp}_${name}.sql"
 ```
 
 2. Migration Templates
@@ -30,31 +38,20 @@ begin;
 create table if not exists table_name (
   id uuid default uuid_generate_v4() primary key,
   created_at timestamptz default now(),
-  updated_at timestamptz default now(),
-  -- Add columns here
+  updated_at timestamptz default now()
 );
 
 -- Add indexes
 create index if not exists idx_table_name_column 
   on table_name(column_name);
 
--- Set up RLS
+-- Enable RLS
 alter table table_name enable row level security;
 
--- Create policies
+-- Add policies
 create policy "Users can read own records"
   on table_name for select
   using (auth.uid() = user_id);
-
-create policy "Users can insert own records"
-  on table_name for insert
-  with check (auth.uid() = user_id);
-
--- Add triggers
-create trigger set_updated_at
-  before update on table_name
-  for each row
-  execute function update_updated_at_column();
 
 commit;
 ```
@@ -66,20 +63,13 @@ begin;
 
 -- Add columns
 alter table table_name
-  add column if not exists new_column_name text,
-  add column if not exists another_column integer;
+  add column if not exists new_column text;
 
 -- Add constraints
 alter table table_name
   add constraint fk_other_table
   foreign key (other_id)
-  references other_table(id)
-  on delete cascade;
-
--- Update policies
-create policy "New access policy"
-  on table_name for select
-  using (conditions);
+  references other_table(id);
 
 commit;
 ```
@@ -90,18 +80,14 @@ commit;
 begin;
 
 create or replace function function_name(param1 text)
-returns table (
-  column1 text,
-  column2 integer
-)
+returns table (column1 text)
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
-  -- Function logic here
   return query
-    select column1, column2
+    select column1
     from some_table
     where condition = param1;
 end;
@@ -111,41 +97,6 @@ $$;
 grant execute on function function_name(text) to authenticated;
 
 commit;
-```
-
-3. Write Migration Content
-- Use appropriate template
-- Follow naming conventions
-- Include comments
-- Handle errors
-- Add rollback steps
-
-4. Generate Rollback Migration
-```sql
--- Rollback previous migration
-begin;
-
--- Reverse the changes here
-drop table if exists table_name cascade;
--- or
-alter table table_name
-  drop column if exists column_name;
--- or
-drop function if exists function_name(text);
-
-commit;
-```
-
-5. Test Migration
-```bash
-# Apply migration
-supabase db reset
-
-# Verify changes
-supabase db dump
-
-# Test rollback
-supabase db reset --timestamp {previous_timestamp}
 ```
 
 ## Validation
@@ -160,80 +111,74 @@ supabase/
 
 ### Migration Standards
 - Atomic operations
+- Transaction blocks
 - Error handling
-- Proper permissions
 - RLS policies
-- Indexing strategy
-- Trigger handling
+- Proper indexes
 
-### Testing Requirements
-- Forward migration works
-- Rollback succeeds
-- Data integrity maintained
-- Permissions correct
-- Performance acceptable
+### Testing Steps
+1. Apply migration
+2. Verify changes
+3. Test rollback
+4. Check constraints
+5. Validate policies
 
 ## Examples
 
-### Create Table
-```bash
-# Create new table migration
-claude create migration add_users_table
+### Add Table
+```sql
+-- 20250401000000_add_books_table.sql
+begin;
+
+create table books (
+  id uuid default uuid_generate_v4() primary key,
+  title text not null,
+  author_id uuid references authors(id),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index idx_books_author on books(author_id);
+alter table books enable row level security;
+
+commit;
 ```
 
-### Add Column
-```bash
-# Add column to existing table
-claude create migration add_user_preferences
-```
+### Modify Table
+```sql
+-- 20250401000001_add_book_status.sql
+begin;
 
-### Create Function
-```bash
-# Create database function
-claude create migration add_search_function
+alter table books
+  add column status text default 'draft'
+  check (status in ('draft', 'published', 'archived'));
+
+create policy "Anyone can read published books"
+  on books for select
+  using (status = 'published');
+
+commit;
 ```
 
 ## Best Practices
-
-### Naming Conventions
-- Use snake_case
-- Descriptive names
-- Include timestamp
-- Indicate purpose
 
 ### Schema Design
 - Use appropriate types
 - Add constraints
 - Include indexes
-- Set up RLS
+- Enable RLS
 - Handle nulls
 
-### Security
-- Enable RLS
-- Set permissions
-- Validate inputs
-- Secure functions
-- Audit sensitive operations
-
-### Performance
-- Optimize queries
-- Add indexes
-- Handle large tables
-- Consider locks
-- Monitor execution time
+### Migration Safety
+- Test migrations
+- Include rollbacks
+- Atomic changes
+- Handle errors
+- Backup data
 
 ### Documentation
 - Clear descriptions
-- Change reasons
-- Dependencies noted
-- Breaking changes
+- Note dependencies
+- List changes
 - Performance impact
-
-## Notes
-- Always test migrations
-- Keep atomic changes
-- Include rollback plans
-- Consider dependencies
-- Monitor performance
-- Backup before applying
-- Follow security best practices
+- Security implications

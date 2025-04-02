@@ -1,229 +1,165 @@
-# TypeScript Development Knowledge
+---
+name: TypeScript Development
+description: Expert knowledge for TypeScript development and type system usage
+type: knowledge
+triggers: [typescript, ts, tsx, type, interface, enum, generic, union, keyof]
+author: OpenHands
+version: 1.0.0
+---
 
-## Keywords
-typescript, ts, tsx, type, interface, enum, generic, union, intersection, keyof, typeof, infer
+# TypeScript Guide
 
-## Overview
-Expert in TypeScript development, type systems, and best practices for type-safe JavaScript applications.
+Essential TypeScript patterns and best practices for the Libro project.
 
 ## Type System Fundamentals
 
-### Basic Types
+### Basic Type Declarations
 ```typescript
 // Primitive types
-const str: string = "hello";
-const num: number = 42;
-const bool: boolean = true;
+const id: number = 1;
+const title: string = "Book Title";
+const isPublished: boolean = true;
 
-// Arrays
-const arr: string[] = ["a", "b"];
-const nums: Array<number> = [1, 2, 3];
+// Arrays and tuples
+const tags: string[] = ["fiction", "fantasy"];
+const coordinate: [number, number] = [0, 0];
 
-// Tuples
-const tuple: [string, number] = ["age", 25];
-
-// Objects
-const obj: { id: number; name: string } = { id: 1, name: "John" };
+// Objects and interfaces
+interface Book {
+  id: number;
+  title: string;
+  author?: string;  // Optional property
+  readonly publishedAt: Date;  // Immutable
+}
 ```
 
 ### Advanced Types
 
-#### Interfaces
+#### Union & Intersection
 ```typescript
-interface User {
-  id: number;
-  name: string;
-  email?: string;  // Optional property
-  readonly createdAt: Date;  // Immutable property
-}
-
-// Extending interfaces
-interface Employee extends User {
-  department: string;
-  salary: number;
-}
-```
-
-#### Type Aliases
-```typescript
+// Union types
+type Status = "draft" | "published" | "archived";
 type ID = string | number;
-type Status = "pending" | "approved" | "rejected";
-type Callback<T> = (data: T) => void;
+
+// Intersection types
+type AdminUser = User & {
+  permissions: string[];
+  role: "admin";
+};
 ```
 
 #### Generics
 ```typescript
-// Generic function
-function identity<T>(arg: T): T {
-  return arg;
-}
-
 // Generic interface
 interface Repository<T> {
   find(id: string): Promise<T>;
   save(item: T): Promise<void>;
 }
 
-// Generic constraints
-function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
-  return obj[key];
+// Generic function
+function pickProps<T, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
+  const result = {} as Pick<T, K>;
+  keys.forEach(key => result[key] = obj[key]);
+  return result;
 }
 ```
 
-## Best Practices
-
-### Type Inference
-- Let TypeScript infer types when obvious
-- Explicitly declare types for function parameters
-- Use type annotations for complex objects
-
-### Null Handling
-```typescript
-// Use strict null checks
-function processUser(user: User | null): string {
-  if (!user) {
-    throw new Error("User not found");
-  }
-  return user.name;  // TypeScript knows user is not null
-}
-```
+## Type Safety
 
 ### Type Guards
 ```typescript
-// User-defined type guards
-function isString(value: unknown): value is string {
-  return typeof value === "string";
+// User-defined type guard
+function isBook(value: unknown): value is Book {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    "title" in value
+  );
 }
 
-// instanceof type guard
-function isError(error: unknown): error is Error {
-  return error instanceof Error;
+// Assertion functions
+function assertIsBook(value: unknown): asserts value is Book {
+  if (!isBook(value)) {
+    throw new Error("Not a book");
+  }
 }
 ```
 
 ### Utility Types
 ```typescript
-// Partial - makes all properties optional
-type PartialUser = Partial<User>;
+// Common utility types
+type PartialBook = Partial<Book>;
+type ReadonlyBook = Readonly<Book>;
+type BookPreview = Pick<Book, "id" | "title">;
+type BookWithoutId = Omit<Book, "id">;
 
-// Pick - select specific properties
-type UserCredentials = Pick<User, "email" | "password">;
-
-// Omit - remove specific properties
-type PublicUser = Omit<User, "password">;
-
-// Record - create object type with specific key/value types
-type UserRoles = Record<string, "admin" | "user">;
-```
-
-## Common Patterns
-
-### Factory Pattern
-```typescript
-interface Product {
-  name: string;
-  price: number;
-}
-
-class ProductFactory {
-  static create<T extends Product>(type: string): T {
-    // Implementation
-  }
-}
-```
-
-### Builder Pattern
-```typescript
-class RequestBuilder {
-  private request: Partial<Request> = {};
-
-  setMethod(method: string): this {
-    this.request.method = method;
-    return this;
-  }
-
-  setUrl(url: string): this {
-    this.request.url = url;
-    return this;
-  }
-
-  build(): Request {
-    return this.request as Request;
-  }
-}
+// Record type
+type BooksByID = Record<string, Book>;
 ```
 
 ## Error Handling
+
+### Result Type Pattern
 ```typescript
-// Custom error types
-class ValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ValidationError";
+type Result<T, E = Error> = 
+  | { success: true; data: T }
+  | { success: false; error: E };
+
+function handleResult<T>(result: Result<T>): T {
+  if (!result.success) {
+    throw result.error;
   }
+  return result.data;
 }
-
-// Result type
-type Result<T, E = Error> = {
-  success: true;
-  data: T;
-} | {
-  success: false;
-  error: E;
-};
 ```
 
-## Module System
+### Async Operations
 ```typescript
-// Named exports
-export interface Config {}
-export function configure() {}
-
-// Default export
-export default class Service {}
-
-// Type-only imports
-import type { Config } from "./types";
-```
-
-## Async Programming
-```typescript
-// Promise types
-async function fetchData<T>(): Promise<T> {
-  const response = await fetch("api/data");
-  return response.json();
-}
-
-// Error handling
-async function safeRequest<T>(): Promise<Result<T, Error>> {
+// Async function with type safety
+async function fetchBook(id: string): Promise<Result<Book, Error>> {
   try {
-    const data = await fetchData<T>();
-    return { success: true, data };
+    const response = await api.get(`/books/${id}`);
+    return { success: true, data: response.data };
   } catch (error) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error : new Error(String(error))
     };
   }
 }
 ```
 
-## Testing Types
-```typescript
-// Type assertion tests
-type test = Expect<Equal<typeof result, ExpectedType>>;
+## Best Practices
 
-// Type predicates in tests
-function assertIsString(value: unknown): asserts value is string {
-  if (typeof value !== "string") {
-    throw new Error("Not a string");
-  }
-}
-```
+### Type Inference
+- Let TypeScript infer simple types
+- Explicitly declare complex types
+- Use const assertions where helpful
+- Leverage type narrowing
 
-## Configuration
+### Naming Conventions
+- Types/Interfaces: PascalCase
+- Generic type params: PascalCase
+- Variables/Functions: camelCase
+- Enum members: PascalCase
+
+### Code Organization
+- Group related types together
+- Export types from separate files
+- Use barrel exports for types
+- Keep type definitions close to usage
+
+### Type Safety Rules
 - Enable strict mode
-- Use ESLint with @typescript-eslint
-- Configure paths for module resolution
-- Set appropriate target and lib options
-- Enable source maps for debugging
+- Avoid type assertions
+- Use unknown over any
+- Implement proper guards
+- Handle null/undefined
+
+### Documentation
+- Document complex types
+- Include examples
+- Note breaking changes
+- Explain type parameters
+- Document constraints
