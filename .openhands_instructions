@@ -2,11 +2,11 @@
 
 ## Memory Bank Integration
 
-When processing tasks or requests, follow these steps to utilize the memory_bank:
+When processing tasks or requests, follow these steps:
 
-1. First consult the memory_bank/README.md for high-level context about the application architecture and organization
-
-2. For each task, check relevant directories based on the type of information needed:
+1. Before examining any code, always consult the memory_bank in this order:
+   - First, consult memory_bank/README.md for high-level context
+   - Then, check relevant directories based on information type:
 
    - `memory_bank/facts/`: For understanding system components, architecture, and domain knowledge
    - `memory_bank/procedures/`: For following established workflows and operational guides
@@ -14,23 +14,25 @@ When processing tasks or requests, follow these steps to utilize the memory_bank
    - `memory_bank/rules/`: For ensuring compliance with system constraints and policies
    - `memory_bank/agents/`: For understanding specialized agent behaviors and principles
 
-3. Prioritize information in this order:
-   1. Specific files directly related to the task
-   2. README.md files in relevant subdirectories
+3. Prioritize memory_bank information in this order:
+   1. Specific memory_bank files directly related to the task
+   2. README.md files in relevant memory_bank subdirectories
    3. General application context from memory_bank/README.md
 
-4. Maintain consistency by:
+4. Only after exhausting relevant memory_bank resources, proceed to examine the codebase
+
+5. Maintain consistency by:
    - Following patterns documented in schemas/
    - Adhering to conventions in rules/
    - Using established workflows from procedures/
 
-5. Before implementing solutions:
+6. Before implementing solutions:
    - Verify alignment with architectural facts
    - Check for relevant procedures
    - Ensure compliance with documented rules
    - Follow defined schemas and patterns
 
-6. Update memory_bank contents when:
+7. Update memory_bank contents when:
    - Adding new patterns or conventions
    - Establishing new procedures
    - Documenting new architectural decisions
