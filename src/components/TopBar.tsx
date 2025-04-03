@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BookFormDialog } from './BookFormDialog';
+import { ThemeToggle } from './ThemeToggle';
 
 const TopBar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,7 +47,7 @@ const handleSearch = (e: React.FormEvent) => {
 
   return (
     <>
-      <div className="sticky top-0 z-10 w-full bg-white/90 backdrop-blur-sm border-b border-gray-100 py-3">
+      <div className="sticky top-0 z-10 w-full bg-background/90 backdrop-blur-sm border-b border-border py-3">
         <div className="container mx-auto flex items-center justify-between px-4">
           <div className="flex-shrink-0">
             <a href="/" className="flex items-center gap-2">
@@ -88,7 +89,8 @@ const handleSearch = (e: React.FormEvent) => {
             )}
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

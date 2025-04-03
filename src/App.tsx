@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { UserProvider } from "@/contexts/UserContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import AppRoutes from "./routes";
 
 const queryClient = new QueryClient({
@@ -20,15 +21,17 @@ const queryClient = new QueryClient({
 const App = () => (
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
-      <UserProvider>
-        <TooltipProvider>
-        <div className="min-h-screen flex flex-col">
-          <AppRoutes />
-          <Toaster />
-          <Sonner />
-        </div>
-        </TooltipProvider>
-      </UserProvider>
+      <ThemeProvider>
+        <UserProvider>
+          <TooltipProvider>
+          <div className="min-h-screen flex flex-col">
+            <AppRoutes />
+            <Toaster />
+            <Sonner />
+          </div>
+          </TooltipProvider>
+        </UserProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </BrowserRouter>
 );
