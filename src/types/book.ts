@@ -6,7 +6,7 @@ export interface Author {
   books?: Book[];
 }
 
-export type BookSource = 'google' | 'libro';
+export type BookSource = 'google' | 'libro' | 'openlibrary' | string;
 
 export interface Book {
   source: BookSource;
@@ -32,6 +32,17 @@ export interface BookReview {
   rating: number;
   user_id: string;
   created_at: string;
+}
+
+export interface BookApiSource {
+  id: string;
+  name: string;
+  api_url: string;
+  api_key?: string;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface GoogleBooksResponse {
